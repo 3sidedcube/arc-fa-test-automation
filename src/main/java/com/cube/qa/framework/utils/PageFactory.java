@@ -3,7 +3,9 @@ package com.cube.qa.framework.utils;
 import com.cube.qa.framework.pages.onboarding.LocationPermissionsPage;
 import com.cube.qa.framework.pages.onboarding.NotificationPermissionsPage;
 import com.cube.qa.framework.pages.onboarding.SignInPage;
+import com.cube.qa.framework.pages.home.TabPage;
 import com.cube.qa.framework.pages.onboarding.TermsOfServicePage;
+import com.cube.qa.framework.pages.onboarding.TooltipsPage;
 import com.cube.qa.framework.pages.onboarding.WelcomeCarouselPage;
 import com.cube.qa.framework.pages.onboarding.WelcomePage;
 import io.appium.java_client.AppiumDriver;
@@ -51,5 +53,13 @@ public class PageFactory {
 
     public TermsOfServicePage termsOfServicePage() {
         return new TermsOfServicePage(driver, platform);
+    }
+
+    public TooltipsPage tooltipsPage() {
+        return new TooltipsPage(driver, platform);
+    }
+
+    public TabPage tabPage() {
+        return new TabPage(driver, platform);
     }
 }
