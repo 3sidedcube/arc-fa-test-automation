@@ -1,0 +1,39 @@
+# Build and Output
+target/
+build/
+out/
+test-output/
+*.log
+
+# Maven
+.mvn/wrapper/maven-wrapper.properties
+!/.mvn/wrapper/maven-wrapper.jar
+mvnw
+mvnw.cmd
+
+# Test reports
+/target/surefire-reports/
+/target/failsafe-reports/
+
+# Appium & mobile test artifacts
+*.apk
+*.ipa
+*.app
+appium.log
+*.tmp
+*.trace
+
+# Ignore all JSON files in prod testdata
+src/test/resources/testdata/prod/*.json
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db

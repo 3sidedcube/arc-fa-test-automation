@@ -1,0 +1,38 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="iOS Suite" parallel="false" thread-count="1">
+
+
+    <test name="iOS Tests">
+        <parameter name="platform" value="ios"/>
+
+        <!-- TODO: Add path to app file and the build number when testing locally-->
+        <parameter name="build" value="src/test/resources/apps/ios/staging_2484.ipa"/>
+        <parameter name="buildNumber" value="2484"/>
+
+        <!-- TODO: To get the iOS device udid, run the following in the terminal: xcrun xctrace list devices. Set to "auto" to run on a simulator-->
+        <parameter name="deviceName" value="iPhone 12"/> <!-- TODO: Add device name for iOS-->
+        <parameter name="platformVersion" value="26.0"/>
+        <parameter name="udid" value="00008101-000E49EA1081401E"/>
+        <parameter name="fullReset" value="true"/> <!--Update fullReset to "true" to run each test from a fresh install-->
+
+        <!-- Add correct environment for env specific tests and test data to be selected -->
+        <parameter name="env" value="staging"/>
+        <parameter name="isSimulator" value="false"/>
+
+        <parameter name="iosBundleId" value="com.americanredcross.firstaid"/>
+
+        <!-- Set up the tests to run here -->
+        <groups>
+            <run> <!-- Sets which type tests will run, e.g. "onboarding", "regression" etc. -->
+            </run>
+        </groups>
+
+        <!-- Add test classes in here -->
+        <classes>
+            <!-- <class name="tests.WelcomeScreenTest"/> -->
+            <!-- <class name="tests.SignInScreenTest"/> -->
+            <class name="tests.LocationPermissionsTest"/>
+            <class name="tests.TermsOfServiceTest"/>
+        </classes>
+    </test>
+</suite>
