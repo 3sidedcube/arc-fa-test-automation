@@ -36,6 +36,7 @@
             <!-- <class name="tests.LocationPermissionsTest"/> -->
             <!-- <class name="tests.TermsOfServiceTest"/> -->
             <class name="tests.TooltipsTest"/>
+            <class name="tests.WelcomeCardTest"/>
         </classes>
     </test>
 </suite>

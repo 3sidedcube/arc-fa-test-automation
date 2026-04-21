@@ -70,6 +70,14 @@ public class SignInPage extends BasePage {
     public boolean isEmailFieldInvisible() {
         return isInvisible(emailFieldLocators);
     }
+    // Non-throwing presence check — use when absence is a valid outcome
+    // (e.g. iOS auto-submits the sign-in form via the keyboard's "Go" key).
+    public boolean isEmailFieldPresent() {
+        for (By locator : emailFieldLocators) {
+            if (!driver.findElements(locator).isEmpty()) return true;
+        }
+        return false;
+    }
     public void enterEmail(String email) {
         enterText(emailFieldLocators, email);
     }
@@ -82,6 +90,11 @@ public class SignInPage extends BasePage {
         tap(passwordFieldLocators);
         dismissKeyboard();
         dismissAlertIfPresent();
+    }
+    // Focus the password field without dismissing the keyboard — use before
+    // enterPassword on iOS so sendKeys types into the right input on real devices.
+    public void focusPasswordField() {
+        tap(passwordFieldLocators);
     }
     public void enterPassword(String password) {
         enterText(passwordFieldLocators, password);
