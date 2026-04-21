@@ -5,8 +5,8 @@
         <parameter name="platform" value="android"/>
 
         <!-- TODO QA: Add path to app file and the build number when testing locally. Add in the "resources" directory-->
-        <parameter name="build" value="src/test/resources/apps/android/staging_4067.apk"/>
-        <parameter name="buildNumber" value="4067"/>
+        <parameter name="build" value="src/test/resources/apps/android/prod_4054.apk"/>
+        <parameter name="buildNumber" value="4054"/>
 
         <!-- TODO QA: To get the Android device udid, run the following in the terminal: adb devices -->
         <parameter name="deviceName" value="Pixel 7"/>
@@ -33,8 +33,9 @@
         <classes>
             <!-- <class name="tests.WelcomeScreenTest"/> -->
             <!-- <class name="tests.SignInScreenTest"/> -->
-            <class name="tests.LocationPermissionsTest"/>
-            <class name="tests.TermsOfServiceTest"/>
+            <!-- <class name="tests.LocationPermissionsTest"/> -->
+            <!-- <class name="tests.TermsOfServiceTest"/> -->
+            <class name="tests.TooltipsTest"/>
         </classes>
     </test>
 </suite>
