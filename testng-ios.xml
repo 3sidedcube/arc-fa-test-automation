@@ -35,6 +35,7 @@
             <class name="tests.TermsOfServiceTest"/>
             <class name="tests.TooltipsTest"/>
             <class name="tests.WelcomeCardTest"/>
+            <class name="tests.PersonalizeExperienceTest"/>
         </classes>
     </test>
 </suite>
