@@ -5,8 +5,8 @@
         <parameter name="platform" value="android"/>
 
         <!-- TODO QA: Add path to app file and the build number when testing locally. Add in the "resources" directory-->
-        <parameter name="build" value="src/test/resources/apps/android/prod_4054.apk"/>
-        <parameter name="buildNumber" value="4054"/>
+        <parameter name="build" value="src/test/resources/apps/android/staging_4067.apk"/>
+        <parameter name="buildNumber" value="4067"/>
 
         <!-- TODO QA: To get the Android device udid, run the following in the terminal: adb devices -->
         <parameter name="deviceName" value="Pixel 7"/>
@@ -14,7 +14,7 @@
         <parameter name="fullReset" value="true"/> <!-- Update fullReset to "true" if you want run each test from a fresh install -->
 
         <!-- Add correct environment for env specific tests and test data to be selected -->
-        <parameter name="env" value="prod"/>
+        <parameter name="env" value="staging"/>
         <parameter name="isSimulator" value="false"/>
         
         <!-- App-specific parameters for performance optimization -->
@@ -31,10 +31,10 @@
 
         <!-- Add test classes in here -->
         <classes>
-            <!-- <class name="tests.WelcomeScreenTest"/> -->
-            <!-- <class name="tests.SignInScreenTest"/> -->
-            <!-- <class name="tests.LocationPermissionsTest"/> -->
-            <!-- <class name="tests.TermsOfServiceTest"/> -->
+            <class name="tests.WelcomeScreenTest"/>
+            <class name="tests.SignInScreenTest"/>
+            <class name="tests.LocationPermissionsTest"/>
+            <class name="tests.TermsOfServiceTest"/>
             <class name="tests.TooltipsTest"/>
             <class name="tests.WelcomeCardTest"/>
         </classes>

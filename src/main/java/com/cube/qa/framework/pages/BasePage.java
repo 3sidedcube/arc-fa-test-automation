@@ -8,6 +8,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.lang.reflect.Field;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -114,6 +115,48 @@ public class BasePage {
 
     protected boolean isInvisible(List<By> locators) {
         return waitForInvisibility(locators); // throws RuntimeException if not found
+    }
+
+    // Non-throwing presence check — use when absence is a valid outcome (e.g.
+    // a loop-termination condition or a "should NOT display" assertion).
+    public boolean isPresent(List<By> locators) {
+        for (By locator : locators) {
+            if (!driver.findElements(locator).isEmpty()) return true;
+        }
+        return false;
+    }
+
+    public boolean isAbsent(List<By> locators) {
+        return !isPresent(locators);
+    }
+
+    // Returns every non-empty text string currently rendered on screen. Used
+    // for dynamic-content capture (tooltip copy, welcome-card bullets) where
+    // the exact strings aren't known up-front.
+    public List<String> visibleTexts() {
+        String platform = driver.getCapabilities().getPlatformName().toString().toLowerCase();
+        By locator = platform.equals("ios")
+                ? By.xpath("//XCUIElementTypeStaticText")
+                : By.xpath("//android.widget.TextView");
+        List<String> texts = new ArrayList<>();
+        for (WebElement el : driver.findElements(locator)) {
+            try {
+                String value = platform.equals("ios") ? el.getAttribute("label") : el.getText();
+                if (value != null && !value.isBlank()) {
+                    texts.add(value.trim());
+                }
+            } catch (Exception ignored) {}
+        }
+        return texts;
+    }
+
+    // True if any on-screen text contains the supplied substring (case-insensitive).
+    public boolean containsText(String substring) {
+        String needle = substring.toLowerCase();
+        for (String text : visibleTexts()) {
+            if (text.toLowerCase().contains(needle)) return true;
+        }
+        return false;
     }
 
     protected boolean hasText(List<By> locators, String expectedText) {

@@ -70,14 +70,6 @@ public class SignInPage extends BasePage {
     public boolean isEmailFieldInvisible() {
         return isInvisible(emailFieldLocators);
     }
-    // Non-throwing presence check — use when absence is a valid outcome
-    // (e.g. iOS auto-submits the sign-in form via the keyboard's "Go" key).
-    public boolean isEmailFieldPresent() {
-        for (By locator : emailFieldLocators) {
-            if (!driver.findElements(locator).isEmpty()) return true;
-        }
-        return false;
-    }
     public void enterEmail(String email) {
         enterText(emailFieldLocators, email);
     }
@@ -86,15 +78,18 @@ public class SignInPage extends BasePage {
     public boolean isPasswordFieldVisible() {
         return isVisible(passwordFieldLocators);
     }
+    // Focus the password field. Previously this also dismissed the keyboard,
+    // but that prevented subsequent enterPassword() calls from typing on iOS
+    // real devices — callers that need the keyboard gone should dismiss it
+    // explicitly after reading whatever state they need.
     public void tapPasswordField() {
         tap(passwordFieldLocators);
-        dismissKeyboard();
         dismissAlertIfPresent();
     }
-    // Focus the password field without dismissing the keyboard — use before
-    // enterPassword on iOS so sendKeys types into the right input on real devices.
-    public void focusPasswordField() {
-        tap(passwordFieldLocators);
+    // Public hook so tests can dismiss the soft keyboard when it covers
+    // assertions (e.g. the validation label beneath the email field).
+    public void dismissSoftKeyboard() {
+        dismissKeyboard();
     }
     public void enterPassword(String password) {
         enterText(passwordFieldLocators, password);
@@ -105,7 +100,10 @@ public class SignInPage extends BasePage {
         return isVisible(continueButtonLocators);
     }
     public boolean isContinueButtonDisabled() {
-        WebElement button = waitForVisibility(continueButtonLocators);
+        // Use presence rather than visibility: iOS marks the disabled CONTINUE
+        // button with visible="false" in the accessibility tree, so a visibility
+        // wait times out even though the element is in the hierarchy.
+        WebElement button = waitForPresence(continueButtonLocators);
         return !button.isEnabled();
     }
     public void tapContinue() {
@@ -120,8 +118,17 @@ public class SignInPage extends BasePage {
         tap(forgotPasswordLocators);
     }
 
-    // Email field label — waits for "Invalid Email" validation state to appear
+    // Email field label — waits for the "Invalid Email" validation state to
+    // appear. Uses presence rather than isDisplayed(): iOS surfaces the label
+    // in the accessibility tree even when Appium's isDisplayed() reports false,
+    // so presence is the more reliable signal that validation fired. Needs a
+    // proper wait (not a one-shot findElements) because staging iOS can take a
+    // few seconds to render the error label after focus leaves the email field.
     public boolean isInvalidEmailLabelVisible() {
-        return isVisible(invalidEmailLabelLocators);
+        try {
+            return waitForPresence(invalidEmailLabelLocators) != null;
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 }

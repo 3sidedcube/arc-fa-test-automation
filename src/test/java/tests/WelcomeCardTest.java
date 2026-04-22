@@ -46,11 +46,11 @@ public class WelcomeCardTest extends BaseTest {
 
         User user = UserDataLoader.findUser(u -> "1.1".equals(u.scenario));
         signInPage.enterEmail(user.username);
-        // iOS: focus the password field before typing. enterText alone relies
-        // on the email keyboard's Next affordance, which doesn't always shift
-        // focus on real devices (seen on prod iPhone 12 iOS 26).
+        // iOS: focus the password field before typing. sendKeys alone relies on
+        // the email keyboard's Next affordance, which doesn't always shift focus
+        // on real devices (seen on prod iPhone 12 iOS 26).
         if (isIOS()) {
-            signInPage.focusPasswordField();
+            signInPage.tapPasswordField();
         }
         signInPage.enterPassword(user.password);
         signInPage.tapContinue();
@@ -62,13 +62,13 @@ public class WelcomeCardTest extends BaseTest {
         List<String> texts = welcomeCardPage.visibleTexts();
         log("📝 Welcome card (Sign In) content: " + String.join(" | ", texts));
 
-        Assert.assertTrue(welcomeCardPage.isContentItemVisible("Learn Life"),
+        Assert.assertTrue(welcomeCardPage.containsText("Learn Life"),
                 "Welcome card should list 'Learn Life Saving Skills'. Got: " + texts);
-        Assert.assertTrue(welcomeCardPage.isContentItemVisible("Track"),
+        Assert.assertTrue(welcomeCardPage.containsText("Track"),
                 "Signed-in welcome card should list 'Track Your Certificates'. Got: " + texts);
-        Assert.assertTrue(welcomeCardPage.isContentItemVisible("Quiz"),
+        Assert.assertTrue(welcomeCardPage.containsText("Quiz"),
                 "Welcome card should list 'Take Quizzes'. Got: " + texts);
-        Assert.assertTrue(welcomeCardPage.isContentItemVisible("Purchase"),
+        Assert.assertTrue(welcomeCardPage.containsText("Purchase"),
                 "Welcome card should list 'Purchase Classes and Supplies'. Got: " + texts);
 
         Assert.assertTrue(welcomeCardPage.isContinueButtonVisible(),
@@ -93,15 +93,15 @@ public class WelcomeCardTest extends BaseTest {
         List<String> texts = welcomeCardPage.visibleTexts();
         log("📝 Welcome card (Guest) content: " + String.join(" | ", texts));
 
-        Assert.assertTrue(welcomeCardPage.isContentItemVisible("Learn Life"),
+        Assert.assertTrue(welcomeCardPage.containsText("Learn Life"),
                 "Welcome card should list 'Learn Life Saving Skills'. Got: " + texts);
-        Assert.assertTrue(welcomeCardPage.isContentItemVisible("Quiz"),
+        Assert.assertTrue(welcomeCardPage.containsText("Quiz"),
                 "Welcome card should list 'Take Quizzes'. Got: " + texts);
-        Assert.assertTrue(welcomeCardPage.isContentItemVisible("Purchase"),
+        Assert.assertTrue(welcomeCardPage.containsText("Purchase"),
                 "Welcome card should list 'Purchase Classes and Supplies'. Got: " + texts);
 
         // Guest path must NOT surface the Track Your Certificates bullet
-        Assert.assertFalse(welcomeCardPage.isContentItemVisible("Track"),
+        Assert.assertFalse(welcomeCardPage.containsText("Track"),
                 "Guest welcome card should NOT list 'Track Your Certificates'. Got: " + texts);
 
         Assert.assertTrue(welcomeCardPage.isContinueButtonVisible(),

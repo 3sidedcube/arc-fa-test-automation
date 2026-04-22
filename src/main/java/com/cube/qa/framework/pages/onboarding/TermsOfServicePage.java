@@ -58,11 +58,6 @@ public class TermsOfServicePage extends BasePage {
     }
 
     public boolean isSkipButtonAbsent() {
-        for (By locator : skipButtonLocators) {
-            if (!driver.findElements(locator).isEmpty()) {
-                return false;
-            }
-        }
-        return true;
+        return isAbsent(skipButtonLocators);
     }
 }
