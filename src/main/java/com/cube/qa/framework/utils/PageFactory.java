@@ -3,6 +3,8 @@ package com.cube.qa.framework.utils;
 import com.cube.qa.framework.pages.onboarding.LocationPermissionsPage;
 import com.cube.qa.framework.pages.onboarding.NotificationPermissionsPage;
 import com.cube.qa.framework.pages.onboarding.SignInPage;
+import com.cube.qa.framework.pages.home.LearnTabPage;
+import com.cube.qa.framework.pages.home.PersonalizeExperiencePage;
 import com.cube.qa.framework.pages.home.TabPage;
 import com.cube.qa.framework.pages.onboarding.TermsOfServicePage;
 import com.cube.qa.framework.pages.onboarding.TooltipsPage;
@@ -61,5 +63,13 @@ public class PageFactory {
 
     public TabPage tabPage() {
         return new TabPage(driver, platform);
+    }
+
+    public LearnTabPage learnTabPage() {
+        return new LearnTabPage(driver, platform);
+    }
+
+    public PersonalizeExperiencePage personalizeExperiencePage() {
+        return new PersonalizeExperiencePage(driver, platform);
     }
 }
