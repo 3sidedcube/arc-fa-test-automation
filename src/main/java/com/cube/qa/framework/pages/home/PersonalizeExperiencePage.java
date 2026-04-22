@@ -126,8 +126,79 @@ public class PersonalizeExperiencePage extends BasePage {
         return !button.isEnabled();
     }
 
+    public boolean isConfirmCtaEnabled() {
+        WebElement button = waitForPresence(confirmCtaLocators);
+        return button.isEnabled();
+    }
+
+    public void tapConfirmCta() {
+        tap(confirmCtaLocators);
+    }
+
     public void tapClose() {
         tap(closeButtonLocators);
+    }
+
+    public boolean isModalInvisible() {
+        return isInvisible(modalContainerLocators);
+    }
+
+    // ---- Tag selection -------------------------------------------------------
+
+    /**
+     * Tap a topic tag by its CMS label (e.g. "Cardiac Emergencies"). Scrolls
+     * the sheet if the tag is below the fold.
+     */
+    public void tapTopicTag(String label) {
+        findTagElement(label).click();
+    }
+
+    /**
+     * Selection state of a topic tag by label. Android CheckBox uses the
+     * {@code checked} attribute (surfaced via {@code isSelected()}); iOS Switch
+     * uses a {@code value} attribute of "1" when on, "0" when off.
+     */
+    public boolean isTopicTagSelected(String label) {
+        WebElement tag = findTagElement(label);
+        if (platform.equals("ios")) {
+            // XCUIElementTypeSwitch's value is normally "0"/"1", but some
+            // SwiftUI Toggles surface it as "selected"/"unselected" or mirror
+            // the checked bit into the name suffix ("double tap to deselect"
+            // when on). Check all three so we're resilient to the rendering
+            // layer, and fall back to VoiceOver-style deselect hint.
+            String value = tag.getAttribute("value");
+            if ("1".equals(value) || "selected".equalsIgnoreCase(value)
+                    || "true".equalsIgnoreCase(value)) return true;
+            String name = tag.getAttribute("name");
+            return name != null && name.toLowerCase().contains("double tap to deselect");
+        }
+        // UiAutomator2's WebElement.isSelected() reads the `selected` attribute,
+        // which CheckBox does not drive. The authoritative bit is `checked`.
+        return "true".equalsIgnoreCase(tag.getAttribute("checked"));
+    }
+
+    private WebElement findTagElement(String label) {
+        By locator = tagLocatorByLabel(label);
+        // Tag may be below the fold on Android (virtualized list) or just
+        // off-screen on iOS. Scroll-reveal until we find it.
+        for (int i = 0; i < 10; i++) {
+            try {
+                WebElement el = driver.findElement(locator);
+                if (el.isDisplayed()) return el;
+            } catch (Exception ignored) {}
+            revealMoreBelow();
+        }
+        throw new RuntimeException("Topic tag not found after scrolling: " + label);
+    }
+
+    private By tagLocatorByLabel(String label) {
+        if (platform.equals("ios")) {
+            // Switch name is "{label}, double tap to select" — match the prefix.
+            return By.xpath("//XCUIElementTypeSwitch[starts-with(@name, \"" + label + ",\")]");
+        }
+        return By.xpath(
+                "//*[@resource-id='com.cube.arc.fa:id/options_container']" +
+                "//android.widget.CheckBox[@text=\"" + label + "\"]");
     }
 
     // ---- Tag collection -----------------------------------------------------

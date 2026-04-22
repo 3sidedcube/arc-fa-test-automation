@@ -79,6 +79,11 @@ public class TabPage extends BasePage {
         return isVisible(tabLocators.get(tab));
     }
 
+    /** Non-throwing presence check — no 30s wait when the tab bar isn't rendered. */
+    public boolean isTabPresent(Tab tab) {
+        return isPresent(tabLocators.get(tab));
+    }
+
     public void tapTab(Tab tab) {
         tap(tabLocators.get(tab));
     }
