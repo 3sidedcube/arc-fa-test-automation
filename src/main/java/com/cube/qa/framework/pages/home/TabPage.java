@@ -29,22 +29,28 @@ public class TabPage extends BasePage {
         super(driver);
 
         if (platform.equalsIgnoreCase("ios")) {
+            // Prod iOS uppercases the tab labels (LEARN / GIVE CARE) while
+            // staging/simulator builds use title case. Accept either.
             tabLocators = Map.of(
                     Tab.LEARN, List.of(
                             By.name("Learn"),
-                            By.xpath("//XCUIElementTypeButton[@label='Learn']")
+                            By.name("LEARN"),
+                            By.xpath("//XCUIElementTypeButton[@label='Learn' or @label='LEARN']")
                     ),
                     Tab.GIVE_CARE, List.of(
                             By.name("Give Care"),
-                            By.xpath("//XCUIElementTypeButton[@label='Give Care']")
+                            By.name("GIVE CARE"),
+                            By.xpath("//XCUIElementTypeButton[@label='Give Care' or @label='GIVE CARE']")
                     ),
                     Tab.TRAINING, List.of(
                             By.name("Training"),
-                            By.xpath("//XCUIElementTypeButton[@label='Training']")
+                            By.name("TRAINING"),
+                            By.xpath("//XCUIElementTypeButton[@label='Training' or @label='TRAINING']")
                     ),
                     Tab.PREPARE, List.of(
                             By.name("Prepare"),
-                            By.xpath("//XCUIElementTypeButton[@label='Prepare']")
+                            By.name("PREPARE"),
+                            By.xpath("//XCUIElementTypeButton[@label='Prepare' or @label='PREPARE']")
                     )
             );
         } else {

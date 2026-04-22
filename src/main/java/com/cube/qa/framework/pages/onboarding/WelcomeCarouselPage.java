@@ -3,8 +3,14 @@ package com.cube.qa.framework.pages.onboarding;
 import com.cube.qa.framework.pages.BasePage;
 import io.appium.java_client.AppiumDriver;
 import org.openqa.selenium.By;
+
 import java.util.List;
 
+/**
+ * The "Welcome / What's New" card shown after the user enters the app
+ * (Sign In, Continue as Guest, or — per spec — NOT shown via First Aid Content).
+ * The card lists feature bullets and exposes a CONTINUE CTA.
+ */
 public class WelcomeCarouselPage extends BasePage {
 
     private List<By> continueButtonLocators;
@@ -35,6 +41,14 @@ public class WelcomeCarouselPage extends BasePage {
 
     public boolean isHeadlineVisible() {
         return isVisible(headlineLocators);
+    }
+
+    public boolean isHeadlinePresent() {
+        return isPresent(headlineLocators);
+    }
+
+    public boolean isContinueButtonVisible() {
+        return isVisible(continueButtonLocators);
     }
 
     public void tapContinue() {

@@ -79,12 +79,7 @@ public class LocationPermissionsPage extends BasePage {
     }
 
     public boolean isSkipButtonAbsent() {
-        for (By locator : skipButtonLocators) {
-            if (!driver.findElements(locator).isEmpty()) {
-                return false;
-            }
-        }
-        return true;
+        return isAbsent(skipButtonLocators);
     }
 
     // Taps OK on the in-app dialogs that appear in the Android deny/rationale flow
@@ -93,6 +88,15 @@ public class LocationPermissionsPage extends BasePage {
     }
 
     public boolean isInAppDenyDialogVisible() {
-        return !driver.findElements(By.xpath("//*[contains(@text, 'unavailable')]")).isEmpty();
+        // The app renders this rationale dialog a short beat after the OS
+        // permission denial closes — use a proper wait instead of a one-shot
+        // findElements so the check doesn't race the render.
+        try {
+            return waitForPresence(List.of(
+                    By.xpath("//*[contains(@text, 'unavailable')]")
+            )) != null;
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 }

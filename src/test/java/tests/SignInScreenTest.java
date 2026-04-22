@@ -43,6 +43,9 @@ public class SignInScreenTest extends BaseTest {
         // Precondition: Not logged in, viewing sign in screen
         signInPage.enterEmail("invalid@test");
         signInPage.tapPasswordField();
+        // Android: the soft keyboard covers the validation label. Dismiss it
+        // explicitly so isInvalidEmailLabelVisible() can actually see the label.
+        signInPage.dismissSoftKeyboard();
 
         Assert.assertTrue(signInPage.isInvalidEmailLabelVisible(), "Email field label should change to 'Invalid Email'");
         Assert.assertTrue(signInPage.isContinueButtonDisabled(), "Continue button should remain disabled with invalid email");

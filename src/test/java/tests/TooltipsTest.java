@@ -2,12 +2,7 @@ package tests;
 
 import com.cube.qa.framework.pages.home.TabPage;
 import com.cube.qa.framework.pages.home.TabPage.Tab;
-import com.cube.qa.framework.pages.onboarding.LocationPermissionsPage;
-import com.cube.qa.framework.pages.onboarding.NotificationPermissionsPage;
-import com.cube.qa.framework.pages.onboarding.TermsOfServicePage;
 import com.cube.qa.framework.pages.onboarding.TooltipsPage;
-import com.cube.qa.framework.pages.onboarding.WelcomeCarouselPage;
-import com.cube.qa.framework.pages.onboarding.WelcomePage;
 import com.cube.qa.framework.utils.BaseTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -22,41 +17,14 @@ import java.util.List;
  */
 public class TooltipsTest extends BaseTest {
 
-    private WelcomePage welcomePage;
-    private WelcomeCarouselPage welcomeCarouselPage;
-    private LocationPermissionsPage locationPermissionsPage;
-    private NotificationPermissionsPage notificationPermissionsPage;
-    private TermsOfServicePage termsOfServicePage;
     private TooltipsPage tooltipsPage;
     private TabPage tabPage;
 
     @BeforeMethod(alwaysRun = true, dependsOnMethods = "setUp")
     public void setUpTest() {
-        welcomePage = pages.welcomePage();
-        welcomeCarouselPage = pages.welcomeCarouselPage();
-        locationPermissionsPage = pages.locationPermissionsPage();
-        notificationPermissionsPage = pages.notificationPermissionsPage();
-        termsOfServicePage = pages.termsOfServicePage();
         tooltipsPage = pages.tooltipsPage();
         tabPage = pages.tabPage();
-
-        // Walk through full onboarding to land on the home screen with tooltips
-        welcomePage.tapContinueAsGuest();
-        try {
-            welcomeCarouselPage.tapContinue();
-        } catch (RuntimeException ignored) {
-            // Carousel may not appear in certain keychain states
-        }
-        if (isIOS()) {
-            locationPermissionsPage.tapContinue();
-            dismissPermissions();
-            notificationPermissionsPage.tapContinue();
-            dismissPermissions();
-        } else {
-            locationPermissionsPage.tapSkip();
-            notificationPermissionsPage.tapSkip();
-        }
-        termsOfServicePage.tapAcceptAndContinue();
+        walkOnboardingAsGuest();
     }
 
     @Test(description = "TC8689 - New user launches app and views tooltips", groups = {"regression"})

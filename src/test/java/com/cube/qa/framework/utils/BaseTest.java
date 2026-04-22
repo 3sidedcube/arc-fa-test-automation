@@ -90,6 +90,28 @@ public class BaseTest {
         }
     }
 
+    // Walk the guest onboarding path: tap Continue as Guest → Welcome card →
+    // permissions (iOS continues + dismisses native alerts; Android skips) →
+    // Terms of Service. Lands on the first-launch Home screen with tooltips.
+    protected void walkOnboardingAsGuest() {
+        pages.welcomePage().tapContinueAsGuest();
+        try {
+            pages.welcomeCarouselPage().tapContinue();
+        } catch (RuntimeException ignored) {
+            // Carousel may not appear in certain keychain states
+        }
+        if (isIOS()) {
+            pages.locationPermissionsPage().tapContinue();
+            dismissPermissions();
+            pages.notificationPermissionsPage().tapContinue();
+            dismissPermissions();
+        } else {
+            pages.locationPermissionsPage().tapSkip();
+            pages.notificationPermissionsPage().tapSkip();
+        }
+        pages.termsOfServicePage().tapAcceptAndContinue();
+    }
+
     // Platform-specific app state management for performance optimization
     
     /**
