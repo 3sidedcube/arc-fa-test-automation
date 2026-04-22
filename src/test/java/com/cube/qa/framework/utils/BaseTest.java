@@ -4,6 +4,7 @@ import com.cube.qa.framework.config.ConfigLoader;
 import com.cube.qa.framework.config.TestConfig;
 import com.cube.qa.framework.pages.deviceHelpers.AndroidHelpersPage;
 import com.cube.qa.framework.pages.deviceHelpers.IOSHelpersPage;
+import com.cube.qa.framework.testdata.loader.ContentBundleLoader;
 import com.cube.qa.framework.testdata.loader.UserDataLoader;
 
 import io.appium.java_client.AppiumDriver;
@@ -208,6 +209,10 @@ public class BaseTest {
 
         // ✅ Inject environment into UserDataLoader for environment-specific data lookup
         UserDataLoader.setEnvironment(config.getEnv());
+
+        // ✅ Point the CDN content-bundle loader at the same env. Lazy — no HTTP
+        // call happens until a test actually asks for a topic/tag/article.
+        ContentBundleLoader.setEnvironment(config.getEnv());
 
         // Performance optimization: Create shared driver once per test class
         if (isAndroid() && androidDriver == null) {
