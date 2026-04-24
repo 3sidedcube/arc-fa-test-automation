@@ -6,6 +6,7 @@ import com.cube.qa.framework.pages.onboarding.SignInPage;
 import com.cube.qa.framework.pages.home.LearnTabPage;
 import com.cube.qa.framework.pages.home.PersonalizeExperiencePage;
 import com.cube.qa.framework.pages.home.TabPage;
+import com.cube.qa.framework.pages.home.profile.PersonalisationPage;
 import com.cube.qa.framework.pages.onboarding.TermsOfServicePage;
 import com.cube.qa.framework.pages.onboarding.TooltipsPage;
 import com.cube.qa.framework.pages.onboarding.WelcomeCarouselPage;
@@ -71,5 +72,9 @@ public class PageFactory {
 
     public PersonalizeExperiencePage personalizeExperiencePage() {
         return new PersonalizeExperiencePage(driver, platform);
+    }
+
+    public PersonalisationPage personalisationPage() {
+        return new PersonalisationPage(driver, platform);
     }
 }
