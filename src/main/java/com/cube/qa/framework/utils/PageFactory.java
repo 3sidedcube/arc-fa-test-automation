@@ -6,6 +6,7 @@ import com.cube.qa.framework.pages.onboarding.SignInPage;
 import com.cube.qa.framework.pages.home.LearnTabPage;
 import com.cube.qa.framework.pages.home.PersonalizeExperiencePage;
 import com.cube.qa.framework.pages.home.TabPage;
+import com.cube.qa.framework.pages.home.TopicDetailPage;
 import com.cube.qa.framework.pages.home.profile.PersonalisationPage;
 import com.cube.qa.framework.pages.onboarding.TermsOfServicePage;
 import com.cube.qa.framework.pages.onboarding.TooltipsPage;
@@ -76,5 +77,9 @@ public class PageFactory {
 
     public PersonalisationPage personalisationPage() {
         return new PersonalisationPage(driver, platform);
+    }
+
+    public TopicDetailPage topicDetailPage() {
+        return new TopicDetailPage(driver, platform);
     }
 }
