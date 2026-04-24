@@ -17,7 +17,8 @@ public class TabPage extends BasePage {
         LEARN("Learn"),
         GIVE_CARE("Give Care"),
         TRAINING("Training"),
-        PREPARE("Prepare");
+        PREPARE("Prepare"),
+        PROFILE("Profile");
 
         public final String label;
         Tab(String label) { this.label = label; }
@@ -51,6 +52,11 @@ public class TabPage extends BasePage {
                             By.name("Prepare"),
                             By.name("PREPARE"),
                             By.xpath("//XCUIElementTypeButton[@label='Prepare' or @label='PREPARE']")
+                    ),
+                    Tab.PROFILE, List.of(
+                            By.name("Profile"),
+                            By.name("PROFILE"),
+                            By.xpath("//XCUIElementTypeButton[@label='Profile' or @label='PROFILE']")
                     )
             );
         } else {
@@ -70,6 +76,11 @@ public class TabPage extends BasePage {
                     Tab.PREPARE, List.of(
                             By.xpath("//*[@text='Prepare']"),
                             By.xpath("//*[@text='PREPARE']")
+                    ),
+                    Tab.PROFILE, List.of(
+                            By.id("com.cube.arc.fa:id/profile_tab"),
+                            By.xpath("//*[@text='Profile']"),
+                            By.xpath("//*[@text='PROFILE']")
                     )
             );
         }
