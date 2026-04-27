@@ -413,4 +413,37 @@ public class TopicDetailPage extends BasePage {
         }
         return false;
     }
+
+    /**
+     * Collects the text of every rendered FAQ answer (the inline expanded
+     * description). On Android each expanded row exposes a
+     * {@code faq_description} TextView; on iOS the answer appears as a
+     * StaticText sibling of the FAQ row's button. iOS has no dedicated
+     * accessibility id, so we widen to all StaticTexts and let the caller
+     * filter — the question rows themselves end with a "?" suffix that
+     * answers don't, so collisions are unlikely in practice.
+     */
+    public List<String> visibleFaqAnswerTexts() {
+        List<String> out = new ArrayList<>();
+        if (platform.equals("ios")) {
+            for (WebElement el : driver.findElements(
+                    By.xpath("//XCUIElementTypeStaticText"))) {
+                String name = el.getAttribute("name");
+                if (name == null) continue;
+                String trimmed = name.trim();
+                // Filter obvious row-headers (questions end in '?') and the
+                // VoiceOver hint strings on collapsed/expanded buttons.
+                if (trimmed.isEmpty()) continue;
+                if (trimmed.contains(". collapsible")) continue;
+                if (trimmed.endsWith("?")) continue;
+                out.add(trimmed);
+            }
+        } else {
+            for (WebElement el : driver.findElements(faqDescriptionLocators.get(0))) {
+                String text = el.getText();
+                if (text != null && !text.isBlank()) out.add(text);
+            }
+        }
+        return out;
+    }
 }

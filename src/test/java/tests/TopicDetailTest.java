@@ -226,8 +226,17 @@ public class TopicDetailTest extends BaseTest {
                 "Topic Detail should display a hero image");
         Assert.assertTrue(topicDetailPage.hasOverviewSection(),
                 "Topic Detail should display the Overview section");
-        Assert.assertFalse(topicDetailPage.getOverviewBody().isBlank(),
-                "Overview body should be non-empty");
+        // Overview body must match the bundle exactly. We compare the
+        // collapsed-whitespace forms because the app sometimes renders
+        // multi-paragraph descriptions with platform-specific line endings,
+        // and TextViews/StaticTexts can fold trailing whitespace.
+        String expectedOverview = topic.descriptionEn();
+        Assert.assertNotNull(expectedOverview,
+                "Bundle topic should expose an en-US description");
+        Assert.assertEquals(
+                normalize(topicDetailPage.getOverviewBody()),
+                normalize(expectedOverview),
+                "Overview body should match the bundle's descriptionEn()");
 
         // Walk the page so RecyclerView lazily inflates the lower sections.
         boolean lessonsSeen = false, relatedSeen = false, faqsSeen = false;
@@ -333,26 +342,51 @@ public class TopicDetailTest extends BaseTest {
         openTopic(topic.titleEn());
         topicDetailPage.scrollToFaqsSection();
 
-        // The question must already be visible (it's the row header). We
-        // pick faqs.get(0) so it's the topmost row — should be in view as
-        // soon as the FAQ section header is.
+        // Pre-tap state: question visible, answer not yet rendered.
         Assert.assertTrue(topicDetailPage.isFaqQuestionVisible(question),
                 "FAQ question should be visible before tap: '" + question + "'");
-
-        // Use a substring of the answer for the visibility check — bundle
-        // answer text is sometimes multi-paragraph; matching the first
-        // sentence is enough to prove the inline expansion happened.
-        String answerNeedle = answerSnippet(answer);
-        Assert.assertFalse(topicDetailPage.isFaqAnswerVisible(answerNeedle),
+        Assert.assertFalse(renderedAnswerMatches(answer),
                 "Sanity: FAQ answer should NOT be visible before tap");
 
+        // Tap to expand and assert the rendered answer matches the bundle's
+        // full answer text exactly (whitespace-normalized for cross-platform
+        // line-ending differences).
         topicDetailPage.tapFaq(question);
         try { Thread.sleep(700); } catch (InterruptedException ignored) {}
 
-        Assert.assertTrue(topicDetailPage.isFaqAnswerVisible(answerNeedle),
-                "FAQ answer (snippet '" + answerNeedle + "') should appear after tapping the question");
+        Assert.assertTrue(topicDetailPage.isFaqQuestionVisible(question),
+                "Question should remain visible after expanding (expand-not-replace)");
+        Assert.assertTrue(renderedAnswerMatches(answer),
+                "FAQ answer should match the bundle exactly after tap.\n" +
+                "Expected: '" + normalize(answer) + "'\n" +
+                "Rendered answers: " + topicDetailPage.visibleFaqAnswerTexts());
 
-        log("✅ TC25099: FAQ '" + question + "' expanded to reveal answer");
+        // Tap again to collapse — answer should disappear, question stays.
+        topicDetailPage.tapFaq(question);
+        try { Thread.sleep(700); } catch (InterruptedException ignored) {}
+
+        Assert.assertTrue(topicDetailPage.isFaqQuestionVisible(question),
+                "Question should still be visible after collapse");
+        Assert.assertFalse(renderedAnswerMatches(answer),
+                "FAQ answer should disappear after re-tapping the question (collapse)");
+
+        log("✅ TC25099: FAQ '" + question + "' expand→full-answer→collapse cycle verified");
+    }
+
+    /**
+     * Whitespace-normalized exact match of any rendered FAQ answer against
+     * the supplied expected text. We compare normalized strings rather than
+     * raw substrings so platform-specific line endings, NBSPs, and
+     * trailing whitespace don't cause spurious mismatches — and we still
+     * fail if the rendered answer is truncated, has extra trailing
+     * paragraphs, or differs character-for-character.
+     */
+    private boolean renderedAnswerMatches(String expectedAnswer) {
+        String expected = normalize(expectedAnswer);
+        for (String rendered : topicDetailPage.visibleFaqAnswerTexts()) {
+            if (normalize(rendered).equals(expected)) return true;
+        }
+        return false;
     }
 
     /**
@@ -360,6 +394,17 @@ public class TopicDetailTest extends BaseTest {
      * checks — full answer text can wrap, contain smart-quotes, or span
      * paragraphs that may not all land on screen at once.
      */
+    /**
+     * Collapse whitespace runs to single spaces and trim. Used for cross-
+     * platform text comparisons where line endings, tab/space differences,
+     * or non-breaking spaces in rendered text would otherwise cause
+     * spurious mismatches.
+     */
+    private String normalize(String s) {
+        if (s == null) return "";
+        return s.replace('\u00A0', ' ').replaceAll("\\s+", " ").trim();
+    }
+
     private String answerSnippet(String answer) {
         String[] sentences = answer.split("(?<=[.!?])\\s+");
         String first = sentences.length > 0 ? sentences[0] : answer;
