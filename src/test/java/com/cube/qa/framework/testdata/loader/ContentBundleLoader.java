@@ -2,6 +2,7 @@ package com.cube.qa.framework.testdata.loader;
 
 import com.cube.qa.framework.testdata.model.Article;
 import com.cube.qa.framework.testdata.model.LearnTopic;
+import com.cube.qa.framework.testdata.model.LearnTopicDetail;
 import com.cube.qa.framework.testdata.model.PersonalizationTag;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -54,6 +55,9 @@ public class ContentBundleLoader {
     private static Map<String, PersonalizationTag> tagsById;
     private static Map<String, LearnTopic> topicsById;
     private static Map<String, Article> articlesById;
+    // Per-topic detail JSON is fetched on demand and cached per id. The
+    // top-level manifest doesn't list these; the URL is `<base>learn-topics/{id}.json`.
+    private static final Map<String, LearnTopicDetail> topicDetailsById = new LinkedHashMap<>();
 
     private ContentBundleLoader() {
         // Static-only.
@@ -80,6 +84,7 @@ public class ContentBundleLoader {
             tagsById = null;
             topicsById = null;
             articlesById = null;
+            topicDetailsById.clear();
         }
         environment = normalized;
         baseUrl = url;
@@ -111,6 +116,21 @@ public class ContentBundleLoader {
             }
         }
         return null;
+    }
+
+    /**
+     * Per-topic detail (description, lessons, related-article ids, faqs).
+     * Fetched lazily on first call for that id and cached for the JVM.
+     */
+    public static synchronized LearnTopicDetail topicDetail(String id) {
+        requireEnvSet();
+        LearnTopicDetail cached = topicDetailsById.get(id);
+        if (cached != null) return cached;
+        String url = baseUrl + "learn-topics/" + id + ".json";
+        LearnTopicDetail detail = fetchJson(url, new TypeReference<LearnTopicDetail>() {});
+        if (detail.id == null || detail.id.isEmpty()) detail.id = id;
+        topicDetailsById.put(id, detail);
+        return detail;
     }
 
     public static Article article(String id) {

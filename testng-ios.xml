@@ -37,6 +37,7 @@
             <class name="tests.WelcomeCardTest"/>
             <class name="tests.PersonalizeExperienceTest"/>
             <class name="tests.BrowseTopicsTest"/>
+            <class name="tests.TopicDetailTest"/>
         </classes>
     </test>
 </suite>
