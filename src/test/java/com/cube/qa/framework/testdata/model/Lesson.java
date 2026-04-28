@@ -3,13 +3,12 @@ package com.cube.qa.framework.testdata.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
- * A lesson nested inside a {@link LearnTopicDetail#lessons} list. The CDN
- * carries the full lesson card content here; for the Topic Detail tests we
- * only care about the headline fields. Lesson-card rendering will be
- * exercised by future Lessons tests.
+ * A lesson nested inside a {@link LearnTopicDetail#lessons} list. Carries the
+ * full deck of {@link LessonCard cards} the Lessons tests step through.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Lesson {
@@ -18,6 +17,7 @@ public class Lesson {
     public String imageId;
     public String analyticsPageName;
     public int durationInMinutes;
+    public List<LessonCard> cards = Collections.emptyList();
 
     public String titleEn() {
         return title == null ? null : title.get("en-US");

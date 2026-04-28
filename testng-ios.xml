@@ -38,6 +38,7 @@
             <class name="tests.PersonalizeExperienceTest"/>
             <class name="tests.BrowseTopicsTest"/>
             <class name="tests.TopicDetailTest"/>
+            <class name="tests.LessonsTest"/>
         </classes>
     </test>
 </suite>

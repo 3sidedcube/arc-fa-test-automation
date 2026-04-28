@@ -55,6 +55,8 @@ public class ContentBundleLoader {
     private static Map<String, PersonalizationTag> tagsById;
     private static Map<String, LearnTopic> topicsById;
     private static Map<String, Article> articlesById;
+    // app-strings.json: {"_KEY": {"en-US": "value", "es-US": "..."}, ...}
+    private static Map<String, Map<String, String>> appStringsByKey;
     // Per-topic detail JSON is fetched on demand and cached per id. The
     // top-level manifest doesn't list these; the URL is `<base>learn-topics/{id}.json`.
     private static final Map<String, LearnTopicDetail> topicDetailsById = new LinkedHashMap<>();
@@ -84,6 +86,7 @@ public class ContentBundleLoader {
             tagsById = null;
             topicsById = null;
             articlesById = null;
+            appStringsByKey = null;
             topicDetailsById.clear();
         }
         environment = normalized;
@@ -137,6 +140,20 @@ public class ContentBundleLoader {
         return ensureArticlesLoaded().get(id);
     }
 
+    /**
+     * Looks up an app-string by key (e.g. {@code _LESSON_COMPLETE_DESCRIPTION_1}),
+     * returning the en-US value or {@code null} if the key is missing.
+     */
+    public static String appString(String key) {
+        Map<String, String> localized = ensureAppStringsLoaded().get(key);
+        return localized == null ? null : localized.get("en-US");
+    }
+
+    /** Raw localized map for an app-string key, or {@code null} if absent. */
+    public static Map<String, String> appStringLocalized(String key) {
+        return ensureAppStringsLoaded().get(key);
+    }
+
     public static Collection<Article> articlesForTab(String tabLocation) {
         List<Article> out = new ArrayList<>();
         for (Article a : ensureArticlesLoaded().values()) {
@@ -186,6 +203,16 @@ public class ContentBundleLoader {
             topicsById = Collections.unmodifiableMap(raw);
         }
         return topicsById;
+    }
+
+    private static synchronized Map<String, Map<String, String>> ensureAppStringsLoaded() {
+        if (appStringsByKey == null) {
+            String url = resolveSubManifestUrl("app_strings");
+            Map<String, Map<String, String>> raw =
+                    fetchJson(url, new TypeReference<Map<String, Map<String, String>>>() {});
+            appStringsByKey = Collections.unmodifiableMap(raw);
+        }
+        return appStringsByKey;
     }
 
     private static synchronized Map<String, Article> ensureArticlesLoaded() {
