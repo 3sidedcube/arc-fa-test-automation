@@ -8,6 +8,10 @@ import com.cube.qa.framework.pages.home.PersonalizeExperiencePage;
 import com.cube.qa.framework.pages.home.TabPage;
 import com.cube.qa.framework.pages.home.TopicDetailPage;
 import com.cube.qa.framework.pages.home.profile.PersonalisationPage;
+import com.cube.qa.framework.pages.lessons.LessonCompletePage;
+import com.cube.qa.framework.pages.lessons.LessonPage;
+import com.cube.qa.framework.pages.lessons.LessonStartPage;
+import com.cube.qa.framework.pages.streaks.StreaksPage;
 import com.cube.qa.framework.pages.onboarding.TermsOfServicePage;
 import com.cube.qa.framework.pages.onboarding.TooltipsPage;
 import com.cube.qa.framework.pages.onboarding.WelcomeCarouselPage;
@@ -81,5 +85,21 @@ public class PageFactory {
 
     public TopicDetailPage topicDetailPage() {
         return new TopicDetailPage(driver, platform);
+    }
+
+    public LessonStartPage lessonStartPage() {
+        return new LessonStartPage(driver, platform);
+    }
+
+    public LessonPage lessonPage() {
+        return new LessonPage(driver, platform);
+    }
+
+    public LessonCompletePage lessonCompletePage() {
+        return new LessonCompletePage(driver, platform);
+    }
+
+    public StreaksPage streaksPage() {
+        return new StreaksPage(driver, platform);
     }
 }
