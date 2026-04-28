@@ -119,6 +119,22 @@ public class LessonStartPage extends BasePage {
         return getText(durationLocators);
     }
 
+    /**
+     * Leading integer parsed from the rendered duration string (e.g. "5 minutes"
+     * → 5, "2 Minutes" → 2). Returns {@code null} if no number is present.
+     * Used by tests to validate the rendered minutes match the bundle's
+     * {@code lesson.durationInMinutes} field exactly, rather than just the
+     * "minute" substring.
+     */
+    public Integer getDurationMinutes() {
+        String text = getDuration();
+        if (text == null) return null;
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)").matcher(text);
+        if (!m.find()) return null;
+        try { return Integer.parseInt(m.group(1)); }
+        catch (NumberFormatException e) { return null; }
+    }
+
     public boolean hasSubtitle() {
         return isPresent(subtitleLocators);
     }

@@ -14,6 +14,7 @@ import java.util.Map;
 public class Lesson {
     public String id;
     public Map<String, String> title = Collections.emptyMap();
+    public Map<String, String> description = Collections.emptyMap();
     public String imageId;
     public String analyticsPageName;
     public int durationInMinutes;
@@ -21,5 +22,14 @@ public class Lesson {
 
     public String titleEn() {
         return title == null ? null : title.get("en-US");
+    }
+
+    /**
+     * en-US lesson description shown on the Topic Detail lesson card. Empty
+     * string ({@code ""}) and {@code null} both mean "bundle did not provide
+     * a description for this lesson" — callers should treat them the same.
+     */
+    public String descriptionEn() {
+        return description == null ? null : description.get("en-US");
     }
 }

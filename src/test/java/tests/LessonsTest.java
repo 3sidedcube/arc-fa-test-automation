@@ -104,6 +104,36 @@ public class LessonsTest extends BaseTest {
     }
 
     /**
+     * First topic that contains at least one lesson with a non-empty en-US
+     * description in the bundle — used by TC25078 to actually exercise the
+     * description text-match path. Falls back to {@link #anyTopicWithLessons()}
+     * if no described lesson exists in the bundle (in which case TC25078's
+     * text-match assertion is skipped and only presence is checked).
+     */
+    private LearnTopicDetail topicWithDescribedLesson() {
+        for (LearnTopic t : ContentBundleLoader.allTopics()) {
+            LearnTopicDetail d = ContentBundleLoader.topicDetail(t.id);
+            for (Lesson l : d.lessons) {
+                String desc = l.descriptionEn();
+                if (desc != null && !desc.isBlank()) return d;
+            }
+        }
+        return anyTopicWithLessons();
+    }
+
+    /**
+     * First lesson within {@code topic} that has a non-empty en-US description,
+     * or {@code topic.lessons.get(0)} if none do.
+     */
+    private Lesson firstDescribedLessonOrFirst(LearnTopicDetail topic) {
+        for (Lesson l : topic.lessons) {
+            String desc = l.descriptionEn();
+            if (desc != null && !desc.isBlank()) return l;
+        }
+        return topic.lessons.get(0);
+    }
+
+    /**
      * Topic with ≥2 lessons — used for carousel swipe (TC25077). We prefer
      * the first ≥2-lesson topic in bundle order. Threshold is ≥2 (not ≥3)
      * because that's the minimum needed to assert "swipe reveals another
@@ -139,6 +169,42 @@ public class LessonsTest extends BaseTest {
     }
 
     private record LessonPick(LearnTopicDetail topic, Lesson lesson, int cardIndex) {}
+
+    // ---- Bundle-vs-rendered text assertions --------------------------------
+
+    /**
+     * Assert the rendered card heading matches the bundle's expected heading
+     * exactly (after normalisation). Skips silently if the bundle has no
+     * heading text for this card — without expected text there's nothing to
+     * compare against, and presence-only is already asserted by the caller.
+     */
+    private void assertHeadingMatchesBundle(LessonCard card, String renderedHeading) {
+        String expected = card.expectedHeading();
+        if (expected == null || expected.isBlank()) return;
+        Assert.assertEquals(normalize(renderedHeading), normalize(expected),
+                "Card heading text should match bundle.\n"
+                        + "Expected: '" + expected + "'\n"
+                        + "Rendered: '" + renderedHeading + "'");
+    }
+
+    /**
+     * Assert the rendered paragraph block contains the bundle's expected
+     * paragraph text (substring match after normalisation). Substring rather
+     * than equality because Android's {@code paragraph_description} TextView
+     * may concatenate multiple paragraph components, and iOS picks the
+     * second-topmost StaticText which can include trailing whitespace from
+     * sibling layout. Skips when bundle has no paragraph text.
+     */
+    private void assertParagraphMatchesBundle(LessonCard card, String renderedParagraph) {
+        String expected = card.expectedFirstParagraph();
+        if (expected == null || expected.isBlank()) return;
+        String renderedNorm = normalize(renderedParagraph);
+        String expectedNorm = normalize(expected);
+        Assert.assertTrue(renderedNorm.contains(expectedNorm),
+                "Card paragraph should contain bundle text.\n"
+                        + "Expected substring: '" + expected + "'\n"
+                        + "Rendered: '" + renderedParagraph + "'");
+    }
 
     // ---- Flow helpers ------------------------------------------------------
 
@@ -323,8 +389,11 @@ public class LessonsTest extends BaseTest {
     // ========================================================================
     @Test(description = "TC25078 - Lesson card display", groups = {"regression"})
     public void TC25078() {
-        LearnTopicDetail topic = anyTopicWithLessons();
-        Lesson l = topic.lessons.get(0);
+        // Prefer a lesson that exposes a non-empty bundle description so the
+        // text-match path below actually runs. Falls back to first-with-lessons
+        // if no lesson in the bundle has a description.
+        LearnTopicDetail topic = topicWithDescribedLesson();
+        Lesson l = firstDescribedLessonOrFirst(topic);
         openTopic(topic.titleEn());
         topicDetailPage.scrollToLessonsSection();
 
@@ -332,17 +401,39 @@ public class LessonsTest extends BaseTest {
                 "Lesson card should display an image");
         Assert.assertTrue(topicDetailPage.isLessonCardVisible(l.titleEn()),
                 "Lesson card should display the title: " + l.titleEn());
-        // Description: subtitle element is present even when bundle has no
-        // description; presence-only assertion (per TC25078's intent and
-        // bundle reality).
+        // Description: presence is always asserted. When the bundle provides
+        // a non-empty en-US description, also assert the rendered text matches
+        // — Android only, since iOS does not expose the per-card description
+        // string in the a11y tree (see TopicDetailPage#getLessonCardDescription).
         Assert.assertTrue(topicDetailPage.lessonCardHasDescriptionElement(),
                 "Lesson card should expose a description element");
+        String bundleDesc = l.descriptionEn();
+        if (isAndroid() && bundleDesc != null && !bundleDesc.isBlank()) {
+            String rendered = topicDetailPage.getLessonCardDescription(l.titleEn());
+            Assert.assertNotNull(rendered,
+                    "Lesson card subtitle should not be empty when bundle has description: '"
+                            + bundleDesc + "'");
+            Assert.assertEquals(normalize(rendered), normalize(bundleDesc),
+                    "Lesson card description text should match bundle.");
+        }
         Assert.assertTrue(topicDetailPage.lessonCardHasDuration(),
                 "Lesson card should display the duration (X minutes)");
+        // Tighten: when the bundle exposes a positive durationInMinutes,
+        // assert the rendered minutes match exactly. Both platforms are
+        // covered by getLessonCardDurationMinutes.
+        if (l.durationInMinutes > 0) {
+            Integer renderedMin = topicDetailPage.getLessonCardDurationMinutes(l.titleEn());
+            Assert.assertNotNull(renderedMin,
+                    "Lesson card duration should expose a parseable minute count");
+            Assert.assertEquals(renderedMin.intValue(), l.durationInMinutes,
+                    "Lesson card duration should match bundle for: " + l.titleEn());
+        }
         Assert.assertTrue(topicDetailPage.lessonCardHasChevron(),
                 "Lesson card should display the chevron");
 
-        log("✅ TC25078: Lesson card shows image, title, description slot, duration, chevron");
+        log("✅ TC25078: Lesson card shows image, title, description"
+                + (isAndroid() && bundleDesc != null && !bundleDesc.isBlank() ? " (matches bundle)" : " (slot)")
+                + ", duration=" + l.durationInMinutes + "m, chevron");
     }
 
     // ========================================================================
@@ -407,6 +498,17 @@ public class LessonsTest extends BaseTest {
         Assert.assertTrue(
                 lessonStartPage.getDuration().toLowerCase().contains("minute"),
                 "Duration text should mention minutes, got: " + lessonStartPage.getDuration());
+        // Tighten: when bundle has a positive durationInMinutes, assert the
+        // rendered minute count matches exactly (catches bundle drift /
+        // wrong-lesson rendering).
+        if (l.durationInMinutes > 0) {
+            Integer renderedMin = lessonStartPage.getDurationMinutes();
+            Assert.assertNotNull(renderedMin,
+                    "Lesson Start duration should parse to a minute count, got: "
+                            + lessonStartPage.getDuration());
+            Assert.assertEquals(renderedMin.intValue(), l.durationInMinutes,
+                    "Lesson Start duration should match bundle.");
+        }
         Assert.assertTrue(lessonStartPage.hasSubtitle(),
                 "Subtitle element should be present (text may be empty per bundle)");
         Assert.assertTrue(lessonStartPage.hasStartCta(), "START CTA should be present");
@@ -525,10 +627,17 @@ public class LessonsTest extends BaseTest {
         log("📋 Using card '" + pick.lesson.titleEn() + "' #" + pick.cardIndex);
         navigateToCard(pick);
 
-        Assert.assertNotNull(lessonPage.getCurrentSectionHeading(),
+        LessonCard card = pick.lesson.cards.get(pick.cardIndex);
+        String renderedHeading = lessonPage.getCurrentSectionHeading();
+        Assert.assertNotNull(renderedHeading,
                 "Card should display a title (section heading)");
-        Assert.assertNotNull(lessonPage.getCurrentParagraphDescription(),
+        assertHeadingMatchesBundle(card, renderedHeading);
+
+        String renderedParagraph = lessonPage.getCurrentParagraphDescription();
+        Assert.assertNotNull(renderedParagraph,
                 "Card should display a description");
+        assertParagraphMatchesBundle(card, renderedParagraph);
+
         Assert.assertFalse(lessonPage.currentCardHasImage(),
                 "No-image card should not render an image");
 
@@ -547,17 +656,22 @@ public class LessonsTest extends BaseTest {
         log("📋 Using card '" + pick.lesson.titleEn() + "' #" + pick.cardIndex);
         navigateToCard(pick);
 
+        LessonCard card = pick.lesson.cards.get(pick.cardIndex);
         Assert.assertTrue(lessonPage.currentCardHasImage(),
                 "Image card should render an image");
-        Assert.assertNotNull(lessonPage.getCurrentSectionHeading(),
+        String renderedHeading = lessonPage.getCurrentSectionHeading();
+        Assert.assertNotNull(renderedHeading,
                 "Image card should still display a title");
+        assertHeadingMatchesBundle(card, renderedHeading);
         // Description is optional on image cards — assert presence only if
         // bundle has a paragraph component on this card.
-        boolean cardHasParagraph = pick.lesson.cards.get(pick.cardIndex).data.content.stream()
+        boolean cardHasParagraph = card.data.content.stream()
                 .anyMatch(c -> "paragraph".equals(c.type));
         if (cardHasParagraph) {
-            Assert.assertNotNull(lessonPage.getCurrentParagraphDescription(),
+            String renderedParagraph = lessonPage.getCurrentParagraphDescription();
+            Assert.assertNotNull(renderedParagraph,
                     "Image card with paragraph component should display description text");
+            assertParagraphMatchesBundle(card, renderedParagraph);
         }
 
         log("✅ TC25086: Image card displays image, title, description (where present)");
@@ -575,10 +689,13 @@ public class LessonsTest extends BaseTest {
         log("📋 Using card '" + pick.lesson.titleEn() + "' #" + pick.cardIndex);
         navigateToCard(pick);
 
+        LessonCard card = pick.lesson.cards.get(pick.cardIndex);
         Assert.assertTrue(lessonPage.currentCardHasVideo(),
                 "Video card should render a video element");
-        Assert.assertNotNull(lessonPage.getCurrentSectionHeading(),
+        String renderedHeading = lessonPage.getCurrentSectionHeading();
+        Assert.assertNotNull(renderedHeading,
                 "Video card should display a title");
+        assertHeadingMatchesBundle(card, renderedHeading);
 
         log("✅ TC25087: Video card displays video + title");
     }
@@ -595,9 +712,15 @@ public class LessonsTest extends BaseTest {
         log("📋 Using card '" + pick.lesson.titleEn() + "' #" + pick.cardIndex);
         navigateToCard(pick);
 
+        LessonCard card = pick.lesson.cards.get(pick.cardIndex);
+        String renderedHeading = lessonPage.getCurrentSectionHeading();
+        Assert.assertNotNull(renderedHeading,
+                "Bullet card should display a section heading");
+        assertHeadingMatchesBundle(card, renderedHeading);
+
         // Build expected bullet text list from the bundle.
         List<String> expected = new ArrayList<>();
-        for (LessonContentComponent c : pick.lesson.cards.get(pick.cardIndex).data.content) {
+        for (LessonContentComponent c : card.data.content) {
             if ("unorderedListItemComponent".equals(c.type) && c.titleEn() != null) {
                 expected.add(normalize(c.titleEn()));
             }

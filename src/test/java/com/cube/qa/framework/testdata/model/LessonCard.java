@@ -44,6 +44,44 @@ public class LessonCard {
         return false;
     }
 
+    /**
+     * Bundle-side expected text for the on-screen card heading. Prefers the
+     * card's own {@code data.title} (the dedicated heading slot); falls back
+     * to the first {@code sectionHeading} content component if the card has
+     * no top-level title. Returns {@code null} when neither is populated —
+     * callers should skip the heading-text assertion in that case.
+     */
+    public String expectedHeading() {
+        String t = titleEn();
+        if (t != null && !t.isBlank()) return t;
+        if (data == null || data.content == null) return null;
+        for (LessonContentComponent c : data.content) {
+            if (c != null && "sectionHeading".equals(c.type)) {
+                String s = c.titleEn();
+                if (s != null && !s.isBlank()) return s;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Bundle-side expected text for the on-screen paragraph block. Picks the
+     * first {@code paragraph} content component's en-US description (the
+     * dedicated body string), falling back to its title if description is
+     * empty. Returns {@code null} when the card has no paragraph component.
+     */
+    public String expectedFirstParagraph() {
+        if (data == null || data.content == null) return null;
+        for (LessonContentComponent c : data.content) {
+            if (c == null || !"paragraph".equals(c.type)) continue;
+            String d = c.descriptionEn();
+            if (d != null && !d.isBlank()) return d;
+            String t = c.titleEn();
+            if (t != null && !t.isBlank()) return t;
+        }
+        return null;
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CardData {
         public Map<String, String> title = Collections.emptyMap();

@@ -626,6 +626,85 @@ public class TopicDetailPage extends BasePage {
         ).isEmpty();
     }
 
+    /**
+     * Android-only reader for the lesson card's rendered description text,
+     * scoped to the card whose title matches {@code lessonTitle}. Returns
+     * {@code null} if no card with that title is currently in the carousel
+     * tree, or if the card's subtitle slot exists but is empty.
+     *
+     * <p>iOS path returns {@code null}: the Adjustable carousel's value
+     * encodes "<index> of <N>, lessons, <title>, <duration>" — no
+     * description segment — and the description is not exposed as a separate
+     * StaticText we can reliably target without coordinate guessing. Tests
+     * fall back to the existing element-presence check on iOS.
+     */
+    /**
+     * Returns the integer minutes rendered on the visible lesson card
+     * matching {@code lessonTitle}, or {@code null} if not extractable.
+     *
+     * <p>Android: scoped to the same card row as the matching title via the
+     * dedicated {@code id/duration} TextView's text.
+     *
+     * <p>iOS: extracts from the carousel's Adjustable {@code value} attribute,
+     * which has shape "<i>N</i> of <i>M</i>, lessons, <i>title</i>,
+     * <i>K</i> minutes". The value is per-active-card, so callers must
+     * ensure the card with this title is the one currently visible.
+     */
+    public Integer getLessonCardDurationMinutes(String lessonTitle) {
+        String text = null;
+        if (platform.equals("ios")) {
+            String safe = lessonTitle.replace("'", "");
+            String predicate = "type == 'XCUIElementTypeStaticText' AND value CONTAINS '"
+                    + safe + "'";
+            java.util.List<WebElement> els = driver.findElements(
+                    io.appium.java_client.AppiumBy.iOSNsPredicateString(predicate));
+            if (els.isEmpty()) return null;
+            // Multiple matches (header strip + Adjustable container); both
+            // share the same value — read either.
+            try { text = els.get(0).getAttribute("value"); }
+            catch (Exception ignored) { return null; }
+            if (text == null) return null;
+            // Pull the int that immediately precedes "minute" (case-
+            // insensitive). Avoids false-matching the "X of N" prefix.
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile(
+                    "(\\d+)\\s*[Mm]inute").matcher(text);
+            if (!m.find()) return null;
+            try { return Integer.parseInt(m.group(1)); }
+            catch (NumberFormatException e) { return null; }
+        }
+        String safe = lessonTitle.replace("'", "\\'");
+        java.util.List<WebElement> dur = driver.findElements(
+                By.xpath("//*[@resource-id='com.cube.arc.fa:id/view_pager']" +
+                        "//*[@resource-id='com.cube.arc.fa:id/title' and @text='" + safe + "']" +
+                        "/parent::*//*[@resource-id='com.cube.arc.fa:id/duration']"));
+        if (dur.isEmpty()) return null;
+        try { text = dur.get(0).getText(); }
+        catch (Exception ignored) { return null; }
+        if (text == null) return null;
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)").matcher(text);
+        if (!m.find()) return null;
+        try { return Integer.parseInt(m.group(1)); }
+        catch (NumberFormatException e) { return null; }
+    }
+
+    public String getLessonCardDescription(String lessonTitle) {
+        if (platform.equals("ios")) return null;
+        String safeTitle = lessonTitle.replace("'", "\\'");
+        // Locate the card row by its title TextView, then jump to the
+        // sibling subtitle TextView in the same parent ViewGroup.
+        java.util.List<WebElement> matches = driver.findElements(
+                By.xpath("//*[@resource-id='com.cube.arc.fa:id/view_pager']" +
+                        "//*[@resource-id='com.cube.arc.fa:id/title' and @text='" + safeTitle + "']" +
+                        "/parent::*//*[@resource-id='com.cube.arc.fa:id/subtitle']"));
+        if (matches.isEmpty()) return null;
+        try {
+            String t = matches.get(0).getText();
+            return (t == null || t.isEmpty()) ? null : t;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
     public boolean lessonCardHasDuration() {
         if (platform.equals("ios")) {
             // Match any element whose name/label/value contains 'inute'
