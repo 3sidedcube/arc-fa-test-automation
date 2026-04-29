@@ -60,27 +60,30 @@ public class TabPage extends BasePage {
                     )
             );
         } else {
+            // The Android prod build uppercases tab labels (GIVE CARE / LEARN /
+            // ...). Putting the uppercase variant first avoids a 30s
+            // waitToBeClickable timeout per tab tap on every test.
             tabLocators = Map.of(
                     Tab.LEARN, List.of(
-                            By.xpath("//*[@text='Learn']"),
-                            By.xpath("//*[@text='LEARN']")
+                            By.xpath("//*[@text='LEARN']"),
+                            By.xpath("//*[@text='Learn']")
                     ),
                     Tab.GIVE_CARE, List.of(
-                            By.xpath("//*[@text='Give Care']"),
-                            By.xpath("//*[@text='GIVE CARE']")
+                            By.xpath("//*[@text='GIVE CARE']"),
+                            By.xpath("//*[@text='Give Care']")
                     ),
                     Tab.TRAINING, List.of(
-                            By.xpath("//*[@text='Training']"),
-                            By.xpath("//*[@text='TRAINING']")
+                            By.xpath("//*[@text='TRAINING']"),
+                            By.xpath("//*[@text='Training']")
                     ),
                     Tab.PREPARE, List.of(
-                            By.xpath("//*[@text='Prepare']"),
-                            By.xpath("//*[@text='PREPARE']")
+                            By.xpath("//*[@text='PREPARE']"),
+                            By.xpath("//*[@text='Prepare']")
                     ),
                     Tab.PROFILE, List.of(
                             By.id("com.cube.arc.fa:id/profile_tab"),
-                            By.xpath("//*[@text='Profile']"),
-                            By.xpath("//*[@text='PROFILE']")
+                            By.xpath("//*[@text='PROFILE']"),
+                            By.xpath("//*[@text='Profile']")
                     )
             );
         }
