@@ -2,8 +2,8 @@
 <suite name="Give Care Topic Detail Android" parallel="false" thread-count="1" configfailurepolicy="continue">
     <test name="Give Care Topic Detail Android Tests">
         <parameter name="platform" value="android"/>
-        <parameter name="build" value="src/test/resources/apps/android/prod_4054.apk"/>
-        <parameter name="buildNumber" value="4054"/>
+        <parameter name="build" value="src/test/resources/apps/android/staging_4067.apk"/>
+        <parameter name="buildNumber" value="4067"/>
         <parameter name="deviceName" value="Pixel 7"/>
         <parameter name="udid" value="33071FDH2007QH"/>
         <parameter name="fullReset" value="true"/>
