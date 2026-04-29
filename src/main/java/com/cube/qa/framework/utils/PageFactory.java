@@ -4,6 +4,7 @@ import com.cube.qa.framework.pages.onboarding.LocationPermissionsPage;
 import com.cube.qa.framework.pages.onboarding.NotificationPermissionsPage;
 import com.cube.qa.framework.pages.onboarding.SignInPage;
 import com.cube.qa.framework.pages.home.GiveCareTabPage;
+import com.cube.qa.framework.pages.home.GiveCareTopicDetailPage;
 import com.cube.qa.framework.pages.home.LearnTabPage;
 import com.cube.qa.framework.pages.home.PersonalizeExperiencePage;
 import com.cube.qa.framework.pages.home.TabPage;
@@ -78,6 +79,10 @@ public class PageFactory {
 
     public GiveCareTabPage giveCareTabPage() {
         return new GiveCareTabPage(driver, platform);
+    }
+
+    public GiveCareTopicDetailPage giveCareTopicDetailPage() {
+        return new GiveCareTopicDetailPage(driver, platform);
     }
 
     public PersonalizeExperiencePage personalizeExperiencePage() {

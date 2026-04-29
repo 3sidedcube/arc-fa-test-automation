@@ -148,6 +148,70 @@ public class GiveCareTabPage extends BasePage {
      * <p>Used by TC31808 (alphabetical sort) and TC22021 (CMS parity) — the
      * caller decides whether to compare to the bundle as-is or sorted.
      */
+    /**
+     * Scroll the emergency-topics list until a row matching {@code titleEn}
+     * is on screen, then tap it. Caller is responsible for being on the
+     * Give Care tab — see {@code GiveCareTabTest#setUpTest}.
+     *
+     * @throws RuntimeException if the topic doesn't appear within a bounded
+     *         number of scroll passes (likely a CMS rename or a typo in the
+     *         test's expected title).
+     */
+    public void tapEmergencyTopic(String titleEn) {
+        if (titleEn == null || titleEn.isBlank()) {
+            throw new IllegalArgumentException("titleEn must not be blank");
+        }
+        for (int pass = 0; pass < 10; pass++) {
+            for (String rendered : currentTopicTitles()) {
+                if (titleEn.equalsIgnoreCase(rendered)) {
+                    tapTopicRow(rendered);
+                    return;
+                }
+            }
+            scrollDown();
+            try { Thread.sleep(400); } catch (InterruptedException ignored) {}
+        }
+        throw new RuntimeException(
+                "Emergency topic '" + titleEn + "' was not found in the list "
+              + "after 10 scroll passes — check the bundle title or whether "
+              + "the row needs longer to render.");
+    }
+
+    private void tapTopicRow(String titleEn) {
+        if (platform.equals("ios")) {
+            // The row is the parent button of the matching StaticText; the
+            // StaticText itself usually accepts taps too on iOS, so try it
+            // directly first, then fall back to the parent button by name.
+            List<By> locators = List.of(
+                    By.xpath("//XCUIElementTypeButton[XCUIElementTypeImage[@name='iconChevronListItem']]"
+                          + "/XCUIElementTypeStaticText[@name=" + xpathLiteral(titleEn) + "]"),
+                    By.xpath("//XCUIElementTypeButton[contains(@name," + xpathLiteral(titleEn) + ")]"));
+            tap(locators);
+        } else {
+            tap(List.of(
+                    By.xpath("//*[@resource-id='com.cube.arc.fa:id/rv_emergency_articles']"
+                          + "//*[@resource-id='com.cube.arc.fa:id/chevron_link_title' and @text="
+                          + xpathLiteral(titleEn) + "]")));
+        }
+    }
+
+    /**
+     * XPath 1.0 has no string escape — wrap a value containing both quote
+     * styles via {@code concat(...)}. Apostrophes appear in topic titles
+     * like {@code "Choking: Adult and Child"} (none today, but futureproof).
+     */
+    private static String xpathLiteral(String s) {
+        if (!s.contains("'")) return "'" + s + "'";
+        if (!s.contains("\"")) return "\"" + s + "\"";
+        StringBuilder sb = new StringBuilder("concat(");
+        String[] parts = s.split("'");
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) sb.append(",\"'\",");
+            sb.append("'").append(parts[i]).append("'");
+        }
+        return sb.append(")").toString();
+    }
+
     public List<String> getEmergencyTopicTitles() {
         Map<String, Boolean> seen = new LinkedHashMap<>();
         int noGrowStreak = 0;

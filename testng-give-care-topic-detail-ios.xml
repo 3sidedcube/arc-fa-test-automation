@@ -1,0 +1,18 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Give Care Topic Detail iOS" parallel="false" thread-count="1" configfailurepolicy="continue">
+    <test name="Give Care Topic Detail iOS Tests">
+        <parameter name="platform" value="ios"/>
+        <parameter name="build" value="src/test/resources/apps/ios/staging_2484.ipa"/>
+        <parameter name="buildNumber" value="2484"/>
+        <parameter name="deviceName" value="iPhone 12"/>
+        <parameter name="platformVersion" value="26.0"/>
+        <parameter name="udid" value="00008101-000E49EA1081401E"/>
+        <parameter name="fullReset" value="false"/>
+        <parameter name="env" value="staging"/>
+        <parameter name="isSimulator" value="false"/>
+        <parameter name="iosBundleId" value="com.americanredcross.firstaid"/>
+        <classes>
+            <class name="tests.GiveCareTopicDetailTest"/>
+        </classes>
+    </test>
+</suite>

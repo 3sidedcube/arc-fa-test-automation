@@ -1,0 +1,17 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Give Care Topic Detail Android" parallel="false" thread-count="1" configfailurepolicy="continue">
+    <test name="Give Care Topic Detail Android Tests">
+        <parameter name="platform" value="android"/>
+        <parameter name="build" value="src/test/resources/apps/android/prod_4054.apk"/>
+        <parameter name="buildNumber" value="4054"/>
+        <parameter name="deviceName" value="Pixel 7"/>
+        <parameter name="udid" value="33071FDH2007QH"/>
+        <parameter name="fullReset" value="true"/>
+        <parameter name="env" value="staging"/>
+        <parameter name="isSimulator" value="false"/>
+        <parameter name="androidPackageName" value="com.cube.arc.fa"/>
+        <classes>
+            <class name="tests.GiveCareTopicDetailTest"/>
+        </classes>
+    </test>
+</suite>
