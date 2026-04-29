@@ -1,6 +1,7 @@
 package com.cube.qa.framework.testdata.loader;
 
 import com.cube.qa.framework.testdata.model.Article;
+import com.cube.qa.framework.testdata.model.ArticleDetail;
 import com.cube.qa.framework.testdata.model.LearnTopic;
 import com.cube.qa.framework.testdata.model.LearnTopicDetail;
 import com.cube.qa.framework.testdata.model.PersonalizationTag;
@@ -60,6 +61,8 @@ public class ContentBundleLoader {
     // Per-topic detail JSON is fetched on demand and cached per id. The
     // top-level manifest doesn't list these; the URL is `<base>learn-topics/{id}.json`.
     private static final Map<String, LearnTopicDetail> topicDetailsById = new LinkedHashMap<>();
+    // Per-article body, fetched on demand from `<base>articles/{id}.json`.
+    private static final Map<String, ArticleDetail> articleDetailsById = new LinkedHashMap<>();
 
     private ContentBundleLoader() {
         // Static-only.
@@ -88,6 +91,7 @@ public class ContentBundleLoader {
             articlesById = null;
             appStringsByKey = null;
             topicDetailsById.clear();
+            articleDetailsById.clear();
         }
         environment = normalized;
         baseUrl = url;
@@ -138,6 +142,36 @@ public class ContentBundleLoader {
 
     public static Article article(String id) {
         return ensureArticlesLoaded().get(id);
+    }
+
+    /**
+     * Per-article body (components / emergency steps / images). Fetched
+     * lazily on first call for that id and cached for the JVM. Mirrors
+     * {@link #topicDetail(String)}.
+     */
+    public static synchronized ArticleDetail articleDetail(String id) {
+        requireEnvSet();
+        ArticleDetail cached = articleDetailsById.get(id);
+        if (cached != null) return cached;
+        String url = baseUrl + "articles/" + id + ".json";
+        ArticleDetail detail = fetchJson(url, new TypeReference<ArticleDetail>() {});
+        if (detail.id == null || detail.id.isEmpty()) detail.id = id;
+        articleDetailsById.put(id, detail);
+        return detail;
+    }
+
+    /**
+     * First emergency article (by tabLocation = EMERGENCY) whose en-US title
+     * matches {@code titleEn} case-insensitively, or {@code null}. Convenience
+     * for tests that target a specific emergency topic by name.
+     */
+    public static Article emergencyArticleByTitle(String titleEn) {
+        if (titleEn == null) return null;
+        for (Article a : articlesForTab("EMERGENCY")) {
+            if (!"emergencyArticle".equals(a.type)) continue;
+            if (titleEn.equalsIgnoreCase(a.titleEn())) return a;
+        }
+        return null;
     }
 
     /**
