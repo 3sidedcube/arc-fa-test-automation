@@ -9,14 +9,18 @@ import java.util.Map;
 
 /**
  * Bottom navigation tabs on the Home screen.
- * Shared across onboarding, learn, give-care, training, and prepare test suites.
+ * Shared across onboarding, learn, give-care, quizzes, and prepare test suites.
+ *
+ * <p>v4.0.0 rename: the third tab was previously labelled "Training" and is
+ * now "Quizzes". The locator list keeps both labels so the page object works
+ * against any prod build still shipping the old string.
  */
 public class TabPage extends BasePage {
 
     public enum Tab {
         LEARN("Learn"),
         GIVE_CARE("Give Care"),
-        TRAINING("Training"),
+        QUIZZES("Quizzes"),
         PREPARE("Prepare"),
         PROFILE("Profile");
 
@@ -43,10 +47,13 @@ public class TabPage extends BasePage {
                             By.name("GIVE CARE"),
                             By.xpath("//XCUIElementTypeButton[@label='Give Care' or @label='GIVE CARE']")
                     ),
-                    Tab.TRAINING, List.of(
+                    Tab.QUIZZES, List.of(
+                            By.name("Quizzes"),
+                            By.name("QUIZZES"),
                             By.name("Training"),
                             By.name("TRAINING"),
-                            By.xpath("//XCUIElementTypeButton[@label='Training' or @label='TRAINING']")
+                            By.xpath("//XCUIElementTypeButton[@label='Quizzes' or @label='QUIZZES'"
+                                  + " or @label='Training' or @label='TRAINING']")
                     ),
                     Tab.PREPARE, List.of(
                             By.name("Prepare"),
@@ -72,8 +79,18 @@ public class TabPage extends BasePage {
                             By.xpath("//*[@text='GIVE CARE']"),
                             By.xpath("//*[@text='Give Care']")
                     ),
-                    Tab.TRAINING, List.of(
+                    Tab.QUIZZES, List.of(
+                            // Resource-id first: it's queryable through the
+                            // accessibility cache as soon as the bottom-nav
+                            // fragment inflates, while the text label only
+                            // appears once the label TextView lays out and the
+                            // selection-state animation settles. The text
+                            // fallbacks remain so this still works on older
+                            // builds that didn't expose the id.
+                            By.id("com.cube.arc.fa:id/quizzes_tab"),
+                            By.xpath("//*[@text='Quizzes']"),
                             By.xpath("//*[@text='TRAINING']"),
+                            By.xpath("//*[@text='QUIZZES']"),
                             By.xpath("//*[@text='Training']")
                     ),
                     Tab.PREPARE, List.of(
