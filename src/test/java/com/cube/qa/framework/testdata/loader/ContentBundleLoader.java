@@ -5,6 +5,9 @@ import com.cube.qa.framework.testdata.model.ArticleDetail;
 import com.cube.qa.framework.testdata.model.LearnTopic;
 import com.cube.qa.framework.testdata.model.LearnTopicDetail;
 import com.cube.qa.framework.testdata.model.PersonalizationTag;
+import com.cube.qa.framework.testdata.model.Quiz;
+import com.cube.qa.framework.testdata.model.QuizDetail;
+import com.cube.qa.framework.testdata.model.QuizQuestion;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,6 +66,9 @@ public class ContentBundleLoader {
     private static final Map<String, LearnTopicDetail> topicDetailsById = new LinkedHashMap<>();
     // Per-article body, fetched on demand from `<base>articles/{id}.json`.
     private static final Map<String, ArticleDetail> articleDetailsById = new LinkedHashMap<>();
+    // Quiz manifest (id -> Quiz) and per-quiz body cache. Body URL: `<base>quizzes/{id}.json`.
+    private static Map<String, Quiz> quizzesById;
+    private static final Map<String, QuizDetail> quizDetailsById = new LinkedHashMap<>();
 
     private ContentBundleLoader() {
         // Static-only.
@@ -92,6 +98,8 @@ public class ContentBundleLoader {
             appStringsByKey = null;
             topicDetailsById.clear();
             articleDetailsById.clear();
+            quizzesById = null;
+            quizDetailsById.clear();
         }
         environment = normalized;
         baseUrl = url;
@@ -188,6 +196,67 @@ public class ContentBundleLoader {
         return ensureAppStringsLoaded().get(key);
     }
 
+    // ---- Quizzes ------------------------------------------------------------
+
+    public static Quiz quiz(String id) {
+        return ensureQuizzesLoaded().get(id);
+    }
+
+    public static Collection<Quiz> allQuizzes() {
+        return ensureQuizzesLoaded().values();
+    }
+
+    /**
+     * Per-quiz body (questions, answers, copy). Fetched lazily on first call
+     * for that id and cached for the JVM. Mirrors {@link #topicDetail(String)}
+     * and {@link #articleDetail(String)}.
+     */
+    public static synchronized QuizDetail quizDetail(String id) {
+        requireEnvSet();
+        QuizDetail cached = quizDetailsById.get(id);
+        if (cached != null) return cached;
+        String url = baseUrl + "quizzes/" + id + ".json";
+        QuizDetail detail = fetchJson(url, new TypeReference<QuizDetail>() {});
+        if (detail.id == null || detail.id.isEmpty()) detail.id = id;
+        quizDetailsById.put(id, detail);
+        return detail;
+    }
+
+    /**
+     * Sentinel — first quiz in manifest order whose Q1 is a "DEFAULT"
+     * text-selection question with exactly {@code expectedCorrect} correct
+     * answers. Q1-only by design: tests against later questions would have to
+     * answer earlier ones to reach them, multiplying flake risk.
+     *
+     * <p>Don't memoise the result across {@code expectedCorrect} values — we
+     * want each call to revalidate against the live bundle, since CMS edits
+     * can change a question's correct-answer count under us. The fetch is
+     * still cached per-quiz inside {@link #quizDetail(String)}.
+     *
+     * @return a {@link QuizDetail} whose {@code questions.get(0)} matches, or
+     *         {@code null} if no quiz qualifies.
+     */
+    public static QuizDetail firstQuizWhereQ1IsDefaultTextSelectionWithCorrectCount(
+            int expectedCorrect) {
+        for (Quiz q : ensureQuizzesLoaded().values()) {
+            QuizDetail detail;
+            try {
+                detail = quizDetail(q.id);
+            } catch (RuntimeException e) {
+                // A single broken body shouldn't break fixture selection —
+                // skip and try the next quiz.
+                continue;
+            }
+            if (detail.questions == null || detail.questions.isEmpty()) continue;
+            QuizQuestion q1 = detail.questions.get(0);
+            if (!"textSelectionQuestion".equals(q1.type)) continue;
+            if (!"DEFAULT".equals(q1.uiType())) continue;
+            if (q1.correctAnswerCount() != expectedCorrect) continue;
+            return detail;
+        }
+        return null;
+    }
+
     public static Collection<Article> articlesForTab(String tabLocation) {
         List<Article> out = new ArrayList<>();
         for (Article a : ensureArticlesLoaded().values()) {
@@ -258,6 +327,17 @@ public class ContentBundleLoader {
             articlesById = Collections.unmodifiableMap(raw);
         }
         return articlesById;
+    }
+
+    private static synchronized Map<String, Quiz> ensureQuizzesLoaded() {
+        if (quizzesById == null) {
+            String url = resolveSubManifestUrl("quiz_manifest");
+            Map<String, Quiz> raw =
+                    fetchJson(url, new TypeReference<Map<String, Quiz>>() {});
+            raw.forEach((id, quiz) -> quiz.id = id);
+            quizzesById = Collections.unmodifiableMap(raw);
+        }
+        return quizzesById;
     }
 
     // ---- Helpers ------------------------------------------------------------

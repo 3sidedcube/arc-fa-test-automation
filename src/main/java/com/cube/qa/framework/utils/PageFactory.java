@@ -13,6 +13,8 @@ import com.cube.qa.framework.pages.home.profile.PersonalisationPage;
 import com.cube.qa.framework.pages.lessons.LessonCompletePage;
 import com.cube.qa.framework.pages.lessons.LessonPage;
 import com.cube.qa.framework.pages.lessons.LessonStartPage;
+import com.cube.qa.framework.pages.quizzes.QuizzesPage;
+import com.cube.qa.framework.pages.quizzes.questions.TextSelectionPage;
 import com.cube.qa.framework.pages.streaks.StreaksPage;
 import com.cube.qa.framework.pages.onboarding.TermsOfServicePage;
 import com.cube.qa.framework.pages.onboarding.TooltipsPage;
@@ -111,5 +113,13 @@ public class PageFactory {
 
     public StreaksPage streaksPage() {
         return new StreaksPage(driver, platform);
+    }
+
+    public QuizzesPage quizzesPage() {
+        return new QuizzesPage(driver, platform);
+    }
+
+    public TextSelectionPage textSelectionPage() {
+        return new TextSelectionPage(driver, platform);
     }
 }
